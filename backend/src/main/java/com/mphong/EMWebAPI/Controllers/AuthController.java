@@ -34,10 +34,10 @@ public class AuthController {
     }
 
     @PostMapping("/signIn")
-    public ResponseEntity<String> signIn(@RequestBody User user) {
+    public ResponseEntity<String> signIn(@RequestBody User user, @RequestParam(defaultValue = "false") boolean isRemember) {
         authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(user.getUsername(), user.getPassword()));
         final UserDetails userDetails = userDetailsService.loadUserByUsername(user.getUsername());
-        final String jwt = jwtUtil.generateToken(userDetails);
+        final String jwt = jwtUtil.generateToken(userDetails, isRemember);
         return ResponseEntity.ok(jwt);
     }
 }

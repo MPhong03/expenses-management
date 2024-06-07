@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/test")
 public class TestController {
+    // MUST SIGN IN
     @GetMapping("/hello")
     public ResponseEntity<String> testHello() {
         return ResponseEntity.ok("Hello User");

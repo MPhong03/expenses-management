@@ -30,15 +30,19 @@ public class JwtUtil {
         }
     }
 
-    public String generateToken(UserDetails userDetails) {
+    public String generateToken(UserDetails userDetails, boolean isRemember) {
         try {
             JWSSigner signer = new MACSigner(secretKey);
 
-            JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
+            Date expirationTime = isRemember ? new Date(System.currentTimeMillis() + 1000L * 60 * 60 * 24 * 365) : new Date(System.currentTimeMillis() + 1000 * 60 * 30); // 1 năm hoặc 30 phút
+
+            JWTClaimsSet.Builder claimsSetBuilder = new JWTClaimsSet.Builder()
                     .subject(userDetails.getUsername())
-                    .issueTime(new Date())
-                    .expirationTime(new Date(new Date().getTime() + 1000 * 60 * 60 * 10)) // 10 giờ
-                    .build();
+                    .issueTime(new Date());
+
+            claimsSetBuilder.expirationTime(expirationTime);
+
+            JWTClaimsSet claimsSet = claimsSetBuilder.build();
 
             SignedJWT signedJWT = new SignedJWT(
                     new JWSHeader(JWSAlgorithm.HS256),
