@@ -18,6 +18,12 @@ public class UserService {
     }
 
     public void signUp(User user) {
+        if (userRepository.findByUsername(user.getUsername()) != null) {
+            throw new RuntimeException("Username already exists");
+        }
+        if (userRepository.findByEmail(user.getEmail()) != null) {
+            throw new RuntimeException("Email already exists");
+        }
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         userRepository.save(user);
     }

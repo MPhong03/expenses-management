@@ -29,8 +29,12 @@ public class AuthController {
 
     @PostMapping("/signUp")
     public ResponseEntity<String> signUp(@RequestBody User user) {
-        userService.signUp(user);
-        return ResponseEntity.ok("User registered successfully");
+        try {
+            userService.signUp(user);
+            return ResponseEntity.ok("User registered successfully");
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     @PostMapping("/signIn")
