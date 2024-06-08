@@ -1,7 +1,24 @@
+import 'package:ExpenseTracker/signup.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-void main() {
-  runApp(const StartupScreen());
+void main() async {
+  await dotenv.load(fileName: ".env");
+  runApp(const MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      home: const StartupScreen(),
+      routes: {
+        '/register': (context) => const SignUpScreen(),
+      },
+    );
+  }
 }
 
 class StartupScreen extends StatelessWidget {
@@ -64,6 +81,7 @@ class StartupScreen extends StatelessWidget {
                     child: OutlinedButton(
                       onPressed: () {
                         // Handle register action
+                        Navigator.pushNamed(context, '/register');
                       },
                       style: OutlinedButton.styleFrom(
                         foregroundColor: Colors.black, // Replace primary with foregroundColor
