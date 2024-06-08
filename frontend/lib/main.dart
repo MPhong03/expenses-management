@@ -1,3 +1,5 @@
+import 'package:ExpenseTracker/home.dart';
+import 'package:ExpenseTracker/signin.dart';
 import 'package:ExpenseTracker/signup.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -16,6 +18,8 @@ class MyApp extends StatelessWidget {
       home: const StartupScreen(),
       routes: {
         '/register': (context) => const SignUpScreen(),
+        '/login': (context) => const SignInScreen(),
+        '/home': (context) => const HomeScreen()
       },
     );
   }
@@ -65,6 +69,7 @@ class StartupScreen extends StatelessWidget {
                     child: ElevatedButton(
                       onPressed: () {
                         // Handle login action
+                        Navigator.pushNamed(context, '/login');
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.black, // Replace primary with backgroundColor

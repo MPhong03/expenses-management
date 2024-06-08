@@ -3,41 +3,26 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'dart:developer';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
-class SignUpScreen extends StatefulWidget {
-  const SignUpScreen({super.key});
+class SignInScreen extends StatefulWidget {
+  const SignInScreen({super.key});
 
   @override
-  State<SignUpScreen> createState() => _SignUpScreenState();
+  State<SignInScreen> createState() => _SignInScreenState();
 }
 
-class _SignUpScreenState extends State<SignUpScreen> {
+class _SignInScreenState extends State<SignInScreen> {
   final _formKey = GlobalKey<FormState>();
   bool _obscurePassword = true;
-  bool _obscureConfirmPassword = true;
   final TextEditingController _usernameController = TextEditingController();
-  final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _confirmPasswordController = TextEditingController();
+  bool _isRemember = false;
+  final _storage = const FlutterSecureStorage();
 
-  Future<void> _signUp() async {
+  Future<void> _signIn() async {
     final username = _usernameController.text.trim();
-    final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
-    final confirmPassword = _confirmPasswordController.text.trim();
-
-    if (password != confirmPassword) {
-      Fluttertoast.showToast(msg: "Passwords do not match");
-      return;
-    }
-
-    if (password.length < 6 ||
-        !RegExp(r'^(?=.*[A-Z])(?=.*\d).+$').hasMatch(password)) {
-      Fluttertoast.showToast(
-          msg: "Password must be at least 6 characters long, include at least one uppercase letter and one number.");
-      return;
-    }
 
     // Show loading dialog
     showDialog(
@@ -49,16 +34,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
         );
       },
     );
-    log('data: ${dotenv.env['API_URL']}');
+
     try {
       final response = await http.post(
-        Uri.parse('${dotenv.env['API_URL']}/api/auth/signUp'), // Sử dụng biến môi trường
+        Uri.parse('${dotenv.env['API_URL']}/api/auth/signIn?isRemember=$_isRemember'),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
         },
         body: jsonEncode(<String, String>{
           'username': username,
-          'email': email,
           'password': password,
         }),
       );
@@ -67,10 +51,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
         Navigator.of(context).pop(); // Hide loading dialog
 
         if (response.statusCode == 200) {
-          Fluttertoast.showToast(msg: "User registered successfully");
-          Navigator.pushNamed(context, '/login');
+          final token = response.body;
+          await _storage.write(key: 'jwt_token', value: token);
+          Fluttertoast.showToast(msg: "User logged in successfully");
+          Navigator.pushNamed(context, '/home');
         } else {
-          Fluttertoast.showToast(msg: "Failed to register: ${response.body}");
+          Fluttertoast.showToast(msg: "Failed to sign in: ${response.body}");
         }
       }
     } catch (e) {
@@ -102,7 +88,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
               children: [
                 const SizedBox(height: 15),
                 const Text(
-                  'Hello! Register to get started',
+                  'Welcome back! Glad to see you, Again!',
                   style: TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
@@ -113,7 +99,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 TextFormField(
                   controller: _usernameController,
                   decoration: const InputDecoration(
-                    labelText: 'Username',
+                    labelText: 'Enter your username',
                     border: OutlineInputBorder(),
                   ),
                   validator: (value) {
@@ -125,25 +111,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 ),
                 const SizedBox(height: 20),
                 TextFormField(
-                  controller: _emailController,
-                  decoration: const InputDecoration(
-                    labelText: 'Email',
-                    border: OutlineInputBorder(),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter your email';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 20),
-                TextFormField(
                   controller: _passwordController,
                   obscureText: _obscurePassword,
                   decoration: InputDecoration(
-                    labelText: 'Password',
-                    border: OutlineInputBorder(),
+                    labelText: 'Enter your password',
+                    border: const OutlineInputBorder(),
                     suffixIcon: IconButton(
                       icon: Icon(_obscurePassword ? Icons.visibility : Icons.visibility_off),
                       onPressed: () {
@@ -161,33 +133,31 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   },
                 ),
                 const SizedBox(height: 20),
-                TextFormField(
-                  controller: _confirmPasswordController,
-                  obscureText: _obscureConfirmPassword,
-                  decoration: InputDecoration(
-                    labelText: 'Confirm Password',
-                    border: OutlineInputBorder(),
-                    suffixIcon: IconButton(
-                      icon: Icon(_obscureConfirmPassword ? Icons.visibility : Icons.visibility_off),
-                      onPressed: () {
+                Row(
+                  children: [
+                    Checkbox(
+                      value: _isRemember,
+                      onChanged: (value) {
                         setState(() {
-                          _obscureConfirmPassword = !_obscureConfirmPassword;
+                          _isRemember = value ?? false;
                         });
                       },
                     ),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please confirm your password';
-                    }
-                    return null;
-                  },
+                    const Text('Remember me'),
+                    const Spacer(),
+                    TextButton(
+                      onPressed: () {
+                        // Handle forgot password
+                      },
+                      child: const Text('Forgot Password?'),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 20),
                 ElevatedButton(
                   onPressed: () {
                     if (_formKey.currentState?.validate() ?? false) {
-                      _signUp();
+                      _signIn();
                     }
                   },
                   style: ElevatedButton.styleFrom(
@@ -195,11 +165,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     padding: const EdgeInsets.symmetric(vertical: 15),
                     textStyle: const TextStyle(fontSize: 16),
                   ),
-                  child: const Text('Register'),
+                  child: const Text('Login'),
                 ),
                 const SizedBox(height: 15),
                 const Text(
-                  'Or Register with',
+                  'Or Login with',
                   textAlign: TextAlign.center,
                   style: TextStyle(color: Colors.grey),
                 ),
@@ -210,19 +180,19 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     IconButton(
                       icon: const Icon(Icons.facebook),
                       onPressed: () {
-                        // Handle Facebook registration
+                        // Handle Facebook login
                       },
                     ),
                     IconButton(
                       icon: const Icon(Icons.g_mobiledata),
                       onPressed: () {
-                        // Handle Google registration
+                        // Handle Google login
                       },
                     ),
                     IconButton(
                       icon: const Icon(Icons.apple),
                       onPressed: () {
-                        // Handle Apple registration
+                        // Handle Apple login
                       },
                     ),
                   ],
@@ -230,17 +200,17 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 const SizedBox(height: 15),
                 TextButton(
                   onPressed: () {
-                    Navigator.pop(context); // Navigate back to login screen
+                    Navigator.pop(context); // Navigate back to register screen
                   },
                   child: RichText(
                     text: const TextSpan(
                       children: [
                         TextSpan(
-                          text: 'Already have an account? ',
+                          text: 'Don\'t have an account? ',
                           style: TextStyle(color: Colors.black),
                         ),
                         TextSpan(
-                          text: 'Login Now',
+                          text: 'Register Now',
                           style: TextStyle(color: Colors.teal),
                         ),
                       ],
