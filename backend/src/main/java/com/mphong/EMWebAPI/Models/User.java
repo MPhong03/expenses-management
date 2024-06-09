@@ -27,6 +27,9 @@ public class User {
     private Date createdAt;
     private Date birthDate;
     private String gender;
+    private String otp;
+    private Date otpExpiryTime;
+    private Boolean canChangePassword;
 
     @PrePersist
     protected void onCreate() {
