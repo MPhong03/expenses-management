@@ -1,9 +1,6 @@
 package com.mphong.EMWebAPI.Controllers;
 
-import com.mphong.EMWebAPI.Models.EmailDetail;
-import com.mphong.EMWebAPI.Models.OTPRequest;
-import com.mphong.EMWebAPI.Models.OTPValidiation;
-import com.mphong.EMWebAPI.Models.User;
+import com.mphong.EMWebAPI.Models.*;
 import com.mphong.EMWebAPI.Services.EmailServiceImpl;
 import com.mphong.EMWebAPI.Services.UserService;
 import com.mphong.EMWebAPI.Utils.JwtUtil;
@@ -108,5 +105,25 @@ public class AuthController {
         userService.saveUser(user);
 
         return ResponseEntity.ok("OTP validated successfully");
+    }
+
+    @PostMapping("/resetPassword")
+    public ResponseEntity<String> resetPassword(@RequestBody NewPassword request) {
+        String email = request.getEmail().trim().toLowerCase();
+        String password = request.getNewPassword().trim();
+
+        User user = userService.findByEmail(email);
+
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+        }
+
+        if (!user.getCanChangePassword()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("User cannot reset password now");
+        }
+
+        userService.changePassword(user, password);
+
+        return ResponseEntity.ok("Change password successfully");
     }
 }

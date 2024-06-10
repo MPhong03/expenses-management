@@ -1,5 +1,6 @@
 package com.mphong.EMWebAPI.Services;
 
+import com.mphong.EMWebAPI.Models.NewPassword;
 import com.mphong.EMWebAPI.Models.User;
 import com.mphong.EMWebAPI.Repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,6 +42,14 @@ public class UserService {
 
     public User findByUsername(String username) {
         return userRepository.findByUsername(username);
+    }
+
+    public void changePassword(User user, String password) {
+        if (!checkUserExist(user)) {
+            throw new RuntimeException("Username already exists");
+        }
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        userRepository.save(user);
     }
 
     public boolean checkUserExist(User user) {
