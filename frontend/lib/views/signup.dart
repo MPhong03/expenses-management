@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'dart:developer';
+import '../presenters/signUpPresenter.dart';
+import '../services/authAPIService.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -14,71 +11,19 @@ class SignUpScreen extends StatefulWidget {
 
 class _SignUpScreenState extends State<SignUpScreen> {
   final _formKey = GlobalKey<FormState>();
-  bool _obscurePassword = true;
-  bool _obscureConfirmPassword = true;
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController = TextEditingController();
+  bool _obscurePassword = true;
+  bool _obscureConfirmPassword = true;
 
-  Future<void> _signUp() async {
-    final username = _usernameController.text.trim();
-    final email = _emailController.text.trim();
-    final password = _passwordController.text.trim();
-    final confirmPassword = _confirmPasswordController.text.trim();
+  late SignUpPresenter _signUpPresenter;
 
-    if (password != confirmPassword) {
-      Fluttertoast.showToast(msg: "Passwords do not match");
-      return;
-    }
-
-    if (password.length < 6 ||
-        !RegExp(r'^(?=.*[A-Z])(?=.*\d).+$').hasMatch(password)) {
-      Fluttertoast.showToast(
-          msg: "Password must be at least 6 characters long, include at least one uppercase letter and one number.");
-      return;
-    }
-
-    // Show loading dialog
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return const Center(
-          child: CircularProgressIndicator(),
-        );
-      },
-    );
-    log('data: ${dotenv.env['API_URL']}');
-    try {
-      final response = await http.post(
-        Uri.parse('${dotenv.env['API_URL']}/api/auth/signUp'), // Sử dụng biến môi trường
-        headers: <String, String>{
-          'Content-Type': 'application/json; charset=UTF-8',
-        },
-        body: jsonEncode(<String, String>{
-          'username': username,
-          'email': email,
-          'password': password,
-        }),
-      );
-
-      if (mounted) {
-        Navigator.of(context).pop(); // Hide loading dialog
-
-        if (response.statusCode == 200) {
-          Fluttertoast.showToast(msg: "User registered successfully");
-          Navigator.pushNamed(context, '/login');
-        } else {
-          Fluttertoast.showToast(msg: "Failed to register: ${response.body}");
-        }
-      }
-    } catch (e) {
-      if (mounted) {
-        Navigator.of(context).pop(); // Hide loading dialog
-        Fluttertoast.showToast(msg: "Error: $e");
-      }
-    }
+  @override
+  void initState() {
+    super.initState();
+    _signUpPresenter = SignUpPresenter(AuthApiService(), context);
   }
 
   @override
@@ -187,7 +132,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 ElevatedButton(
                   onPressed: () {
                     if (_formKey.currentState?.validate() ?? false) {
-                      _signUp();
+                      _signUpPresenter.signUp(
+                        _usernameController.text.trim(),
+                        _emailController.text.trim(),
+                        _passwordController.text.trim(),
+                        _confirmPasswordController.text.trim(),
+                      );
                     }
                   },
                   style: ElevatedButton.styleFrom(

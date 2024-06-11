@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import '../presenters/signinPresenter.dart';
+import '../services/authAPIService.dart';
 
 class SignInScreen extends StatefulWidget {
   const SignInScreen({super.key});
@@ -14,57 +11,17 @@ class SignInScreen extends StatefulWidget {
 
 class _SignInScreenState extends State<SignInScreen> {
   final _formKey = GlobalKey<FormState>();
-  bool _obscurePassword = true;
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  bool _obscurePassword = true;
   bool _isRemember = false;
-  final _storage = const FlutterSecureStorage();
 
-  Future<void> _signIn() async {
-    final username = _usernameController.text.trim();
-    final password = _passwordController.text.trim();
+  late SignInPresenter _signInPresenter;
 
-    // Show loading dialog
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return const Center(
-          child: CircularProgressIndicator(),
-        );
-      },
-    );
-
-    try {
-      final response = await http.post(
-        Uri.parse('${dotenv.env['API_URL']}/api/auth/signIn?isRemember=$_isRemember'),
-        headers: <String, String>{
-          'Content-Type': 'application/json; charset=UTF-8',
-        },
-        body: jsonEncode(<String, String>{
-          'username': username,
-          'password': password,
-        }),
-      );
-
-      if (mounted) {
-        Navigator.of(context).pop(); // Hide loading dialog
-
-        if (response.statusCode == 200) {
-          final token = response.body;
-          await _storage.write(key: 'jwt_token', value: token);
-          Fluttertoast.showToast(msg: "User logged in successfully");
-          Navigator.pushNamed(context, '/home');
-        } else {
-          Fluttertoast.showToast(msg: "Failed to sign in: ${response.body}");
-        }
-      }
-    } catch (e) {
-      if (mounted) {
-        Navigator.of(context).pop(); // Hide loading dialog
-        Fluttertoast.showToast(msg: "Error: $e");
-      }
-    }
+  @override
+  void initState() {
+    super.initState();
+    _signInPresenter = SignInPresenter(AuthApiService(), context);
   }
 
   @override
@@ -157,7 +114,11 @@ class _SignInScreenState extends State<SignInScreen> {
                 ElevatedButton(
                   onPressed: () {
                     if (_formKey.currentState?.validate() ?? false) {
-                      _signIn();
+                      _signInPresenter.signIn(
+                        _usernameController.text.trim(),
+                        _passwordController.text.trim(),
+                        _isRemember,
+                      );
                     }
                   },
                   style: ElevatedButton.styleFrom(
