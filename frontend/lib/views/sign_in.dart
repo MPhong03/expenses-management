@@ -1,29 +1,26 @@
 import 'package:flutter/material.dart';
-import '../presenters/signUpPresenter.dart';
-import '../services/authAPIService.dart';
+import '../presenters/auth_presenter.dart';
+import '../services/auth_api_service.dart';
 
-class SignUpScreen extends StatefulWidget {
-  const SignUpScreen({super.key});
+class SignInScreen extends StatefulWidget {
+  const SignInScreen({super.key});
 
   @override
-  State<SignUpScreen> createState() => _SignUpScreenState();
+  State<SignInScreen> createState() => _SignInScreenState();
 }
 
-class _SignUpScreenState extends State<SignUpScreen> {
+class _SignInScreenState extends State<SignInScreen> {
   final _formKey = GlobalKey<FormState>();
-  final TextEditingController _usernameController = TextEditingController();
-  final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _confirmPasswordController = TextEditingController();
   bool _obscurePassword = true;
-  bool _obscureConfirmPassword = true;
-
-  late SignUpPresenter _signUpPresenter;
+  final TextEditingController _usernameController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  bool _isRemember = false;
+  late AuthPresenter _authPresenter;
 
   @override
   void initState() {
     super.initState();
-    _signUpPresenter = SignUpPresenter(AuthApiService(), context);
+    _authPresenter = AuthPresenter(AuthApiService(), context);
   }
 
   @override
@@ -47,7 +44,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
               children: [
                 const SizedBox(height: 15),
                 const Text(
-                  'Hello! Register to get started',
+                  'Welcome back! Glad to see you, Again!',
                   style: TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
@@ -58,7 +55,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 TextFormField(
                   controller: _usernameController,
                   decoration: const InputDecoration(
-                    labelText: 'Username',
+                    labelText: 'Enter your username',
                     border: OutlineInputBorder(),
                   ),
                   validator: (value) {
@@ -70,25 +67,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 ),
                 const SizedBox(height: 20),
                 TextFormField(
-                  controller: _emailController,
-                  decoration: const InputDecoration(
-                    labelText: 'Email',
-                    border: OutlineInputBorder(),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter your email';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 20),
-                TextFormField(
                   controller: _passwordController,
                   obscureText: _obscurePassword,
                   decoration: InputDecoration(
-                    labelText: 'Password',
-                    border: OutlineInputBorder(),
+                    labelText: 'Enter your password',
+                    border: const OutlineInputBorder(),
                     suffixIcon: IconButton(
                       icon: Icon(_obscurePassword ? Icons.visibility : Icons.visibility_off),
                       onPressed: () {
@@ -106,37 +89,36 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   },
                 ),
                 const SizedBox(height: 20),
-                TextFormField(
-                  controller: _confirmPasswordController,
-                  obscureText: _obscureConfirmPassword,
-                  decoration: InputDecoration(
-                    labelText: 'Confirm Password',
-                    border: OutlineInputBorder(),
-                    suffixIcon: IconButton(
-                      icon: Icon(_obscureConfirmPassword ? Icons.visibility : Icons.visibility_off),
-                      onPressed: () {
+                Row(
+                  children: [
+                    Checkbox(
+                      value: _isRemember,
+                      onChanged: (value) {
                         setState(() {
-                          _obscureConfirmPassword = !_obscureConfirmPassword;
+                          _isRemember = value ?? false;
                         });
                       },
                     ),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please confirm your password';
-                    }
-                    return null;
-                  },
+                    const Text('Remember me'),
+                    const Spacer(),
+                    TextButton(
+                      onPressed: () {
+                        // Handle forgot password
+                        Navigator.pushNamed(context, '/forgot-password');
+                      },
+                      child: const Text('Forgot Password?'),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 20),
                 ElevatedButton(
                   onPressed: () {
                     if (_formKey.currentState?.validate() ?? false) {
-                      _signUpPresenter.signUp(
-                        _usernameController.text.trim(),
-                        _emailController.text.trim(),
-                        _passwordController.text.trim(),
-                        _confirmPasswordController.text.trim(),
+                      _authPresenter.signIn(
+                        _usernameController.text,
+                        _passwordController.text,
+                        _isRemember,
+                        context,
                       );
                     }
                   },
@@ -145,11 +127,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     padding: const EdgeInsets.symmetric(vertical: 15),
                     textStyle: const TextStyle(fontSize: 16),
                   ),
-                  child: const Text('Register'),
+                  child: const Text('Login'),
                 ),
                 const SizedBox(height: 15),
                 const Text(
-                  'Or Register with',
+                  'Or Login with',
                   textAlign: TextAlign.center,
                   style: TextStyle(color: Colors.grey),
                 ),
@@ -160,19 +142,19 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     IconButton(
                       icon: const Icon(Icons.facebook),
                       onPressed: () {
-                        // Handle Facebook registration
+                        // Handle Facebook login
                       },
                     ),
                     IconButton(
                       icon: const Icon(Icons.g_mobiledata),
                       onPressed: () {
-                        // Handle Google registration
+                        // Handle Google login
                       },
                     ),
                     IconButton(
                       icon: const Icon(Icons.apple),
                       onPressed: () {
-                        // Handle Apple registration
+                        // Handle Apple login
                       },
                     ),
                   ],
@@ -180,17 +162,17 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 const SizedBox(height: 15),
                 TextButton(
                   onPressed: () {
-                    Navigator.pop(context); // Navigate back to login screen
+                    Navigator.pop(context); // Navigate back to register screen
                   },
                   child: RichText(
                     text: const TextSpan(
                       children: [
                         TextSpan(
-                          text: 'Already have an account? ',
+                          text: 'Don\'t have an account? ',
                           style: TextStyle(color: Colors.black),
                         ),
                         TextSpan(
-                          text: 'Login Now',
+                          text: 'Register Now',
                           style: TextStyle(color: Colors.teal),
                         ),
                       ],

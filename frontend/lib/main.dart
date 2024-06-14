@@ -1,27 +1,45 @@
+import 'package:ExpenseTracker/views/forgot_password.dart';
 import 'package:ExpenseTracker/views/home.dart';
-import 'package:ExpenseTracker/views/signin.dart';
-import 'package:ExpenseTracker/views/signup.dart';
+import 'package:ExpenseTracker/views/reset_password.dart';
+import 'package:ExpenseTracker/views/sign_in.dart';
+import 'package:ExpenseTracker/views/sign_up.dart';
+import 'package:ExpenseTracker/views/verify_otp.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 void main() async {
   await dotenv.load(fileName: ".env");
-  runApp(const MyApp());
+
+  const FlutterSecureStorage storage = FlutterSecureStorage();
+  String initialRoute = '/login'; // default initial route
+
+  // Check if user is logged in
+  String? token = await storage.read(key: 'jwt_token');
+  if (token != null && token.isNotEmpty) {
+    initialRoute = '/home';
+  }
+
+  runApp(MyApp(initialRoute: initialRoute));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final String initialRoute;
+  const MyApp({super.key, required this.initialRoute});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Expense Tracker',
-      initialRoute: '/',
+      initialRoute: initialRoute,
       routes: {
         '/': (context) => const StartupScreen(),
         '/register': (context) => const SignUpScreen(),
         '/login': (context) => const SignInScreen(),
         '/home': (context) => const HomeScreen(),
+        '/forgot-password': (context) => const ForgotPasswordScreen(),
+        '/verify-otp': (context) => const VerifyOTPScreen(),
+        '/reset-password': (context) => const ResetPasswordScreen(),
       },
     );
   }

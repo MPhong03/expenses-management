@@ -53,7 +53,7 @@ public class UserService {
         if (!checkUserExist(user)) {
             throw new RuntimeException("Username already exists");
         }
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        user.setPassword(passwordEncoder.encode(password));
         userRepository.save(user);
     }
 
