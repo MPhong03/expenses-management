@@ -1,4 +1,4 @@
-package com.mphong.EMWebAPI.Models;
+package com.mphong.EMWebAPI.Models.Dtos;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class NewPassword {
+public class OTPValidiation {
     private String email;
-    private String newPassword;
+    private String otp;
 }

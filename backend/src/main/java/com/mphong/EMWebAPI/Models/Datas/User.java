@@ -1,9 +1,10 @@
-package com.mphong.EMWebAPI.Models;
+package com.mphong.EMWebAPI.Models.Datas;
 
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.util.Date;
+import java.util.List;
 
 @Data
 @Entity
@@ -30,6 +31,15 @@ public class User {
     private String otp;
     private Date otpExpiryTime;
     private Boolean canChangePassword;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Expense> expenses;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Notification> notifications;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Budget> budgets;
 
     @PrePersist
     protected void onCreate() {

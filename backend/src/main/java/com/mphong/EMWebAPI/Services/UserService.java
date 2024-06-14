@@ -1,11 +1,12 @@
 package com.mphong.EMWebAPI.Services;
 
-import com.mphong.EMWebAPI.Models.NewPassword;
-import com.mphong.EMWebAPI.Models.User;
+import com.mphong.EMWebAPI.Models.Datas.User;
 import com.mphong.EMWebAPI.Repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.Optional;
 
 @Service
 public class UserService {
@@ -34,6 +35,10 @@ public class UserService {
         newUser.setOtp(user.getOtp());
         newUser.setOtpExpiryTime(user.getOtpExpiryTime());
         userRepository.save(newUser);
+    }
+
+    public Optional<User> getUserById(Long id) {
+        return userRepository.findById(id);
     }
 
     public User findByEmail(String email) {

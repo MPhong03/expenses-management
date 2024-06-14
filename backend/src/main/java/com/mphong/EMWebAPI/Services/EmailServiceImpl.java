@@ -1,7 +1,7 @@
 package com.mphong.EMWebAPI.Services;
 
 import com.mphong.EMWebAPI.Interfaces.EmailService;
-import com.mphong.EMWebAPI.Models.EmailDetail;
+import com.mphong.EMWebAPI.Models.Dtos.EmailDetail;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;

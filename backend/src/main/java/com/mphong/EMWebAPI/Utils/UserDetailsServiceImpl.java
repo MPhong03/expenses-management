@@ -1,6 +1,6 @@
 package com.mphong.EMWebAPI.Utils;
 
-import com.mphong.EMWebAPI.Models.User;
+import com.mphong.EMWebAPI.Models.Datas.User;
 import com.mphong.EMWebAPI.Repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
